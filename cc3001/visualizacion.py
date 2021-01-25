@@ -1,3 +1,6 @@
+from graphviz import Source
+from IPython.display import display_svg, SVG,display
+
 class Visualizacion:
   @staticmethod
   def dibujar_lista(lista):
