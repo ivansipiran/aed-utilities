@@ -1,1 +1,1 @@
-from aed_utilities.visualizacion import Visualizacion
+from aed_utilities.visualizacion import *
