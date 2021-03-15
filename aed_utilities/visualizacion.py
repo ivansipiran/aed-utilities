@@ -245,7 +245,10 @@ class NumpyArrayDrawer:
       strArray = strArray + '</TR>'
 
     for i in range(array.shape[0]):
-      strArray = strArray + '<TR><TD border="0" fixedsize="true" width="'+str(size)+'" height="'+str(size)+'">' + str(i)+ '</TD>'
+      if showIndex:
+        strArray = strArray + '<TR><TD border="0" fixedsize="true" width="'+str(size)+'" height="'+str(size)+'">' + str(i)+ '</TD>'
+      else:
+        strArray = strArray + '<TR>'
       for j in range(array.shape[1]):
         strArray = strArray + '<TD border="1" fixedsize="true" width="'+str(size)+'" height="'+str(size)+'">' + str(array[i][j]) +'</TD>'
       strArray = strArray + "</TR>"
