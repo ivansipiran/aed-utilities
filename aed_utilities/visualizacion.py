@@ -91,31 +91,31 @@ class BinaryTreeDrawer:
           if not self.drawNull:
             return None
           else:
-            newNode = PositionNode(None, "", None, "null", "null" + str(self.counterNull))
+            newNode = PositionNode(None, "", None, "square", "null" + str(self.counterNull))
             self.counterNull = self.counterNull + 1
             return newNode
         else:
           if not self.drawNull:
-            return PositionNode(None, getattr(node, self.nameInfo), None, "notnull", self.gen_code())
+            return PositionNode(None, getattr(node, self.nameInfo), None, "square", self.gen_code())
           else:
-            newNode1 = PositionNode(None, "", None, "null", "null" + str(self.counterNull))
+            newNode1 = PositionNode(None, "", None, "square", "null" + str(self.counterNull))
             self.counterNull = self.counterNull + 1
-            newNode2 = PositionNode(None, "", None, "null", "null" + str(self.counterNull))
+            newNode2 = PositionNode(None, "", None, "square", "null" + str(self.counterNull))
             self.counterNull = self.counterNull + 1
-            return PositionNode(newNode1, getattr(node, self.nameInfo), newNode2, "notnull", self.gen_code())
+            return PositionNode(newNode1, getattr(node, self.nameInfo), newNode2, "circle", self.gen_code())
     else:
       if node is None:
         if not self.drawNull:
           return None
         else:
-          newNode = PositionNode(None, "", None, "null", "null" + str(self.counterNull))
+          newNode = PositionNode(None, "", None, "square", "null" + str(self.counterNull))
           self.counterNull = self.counterNull + 1
           return newNode
   
     newLeft = self.copy_tree(getattr(node, self.nameLeft))
     newRight = self.copy_tree(getattr(node, self.nameRight))
 
-    return PositionNode(newLeft, getattr(node, self.nameInfo), newRight, "notnull", self.gen_code())
+    return PositionNode(newLeft, getattr(node, self.nameInfo), newRight, "circle", self.gen_code())
 
   def update_position(self, node, shiftX, shiftY):
     if node is not None:
@@ -148,7 +148,7 @@ class BinaryTreeDrawer:
   def inorden(self, node, L):
     if node is not None:
       self.inorden(node.left, L)
-      L.append((node.info, node.x, node.y, node.code))
+      L.append((node.info, node.x, node.y, node.code, node.nodetype))
       self.inorden(node.right, L)
 
   def encode_nodes(self,node):
@@ -161,7 +161,7 @@ class BinaryTreeDrawer:
       if "null" in str(item[3]):
         listStr = listStr + ' ' + str(item[3])+ '[pos="' + str(item[1]) + ',' + str(item[2]) + '!" shape=square label="'+str(item[0])+'" width="0.2"] '  
       else:
-        listStr = listStr + '"' + str(item[3])+ '"' + '[pos="' + str(item[1]) + ',' + str(item[2]) + '!" label="'+str(item[0])+'" shape=circle] '
+        listStr = listStr + '"' + str(item[3])+ '"' + '[pos="' + str(item[1]) + ',' + str(item[2]) + '!" label="'+str(item[0])+'" shape='+str(item[4])+'] '
   
     return listStr
 
@@ -194,10 +194,10 @@ class BinaryTreeDrawer:
     display(SVG(src.pipe(format='svg')))
 
 class NumpyArrayDrawer:
-  def __init__(self):
-    pass
+  def __init__(self, animation = False):
+    self.animation = animation
 
-  def drawNumpy1DArray(self, array, showIndex=False, layout="row"):
+  def drawNumpy1DArray(self, array, showIndex=False, layout="row", ):
     maxLen = 0
     for i in range(array.shape[0]):
       val = str(array[i])
@@ -223,9 +223,14 @@ class NumpyArrayDrawer:
         else:
           strArray = strArray + '<TR><TD border="0" fixedsize="true" width="'+str(size)+'" height="'+str(size)+'">' + str(i) +'</TD><TD border="1" fixedsize="true" width="'+str(size)+'" height="'+str(size)+'">' + str(array[i]) +'</TD></TR>'
   
-    src = Source('graph "Array" { node [fontsize=15, shape=plaintext]; a0 [label=< <TABLE border="0" cellspacing="0" cellpadding="3">' + strArray + '</TABLE> >] }')
-    src.render('lista.gv', view=True)
-    display(SVG(src.pipe(format='svg')))
+    if not self.animation:
+      src = Source('graph "Array" { node [fontsize=15, shape=plaintext]; a0 [label=< <TABLE border="0" cellspacing="0" cellpadding="3">' + strArray + '</TABLE> >] }')
+      src.render('lista.gv', view=True)
+      display(SVG(src.pipe(format='svg')))
+      return None
+    else:
+      src = Source('graph "Array" { node [fontsize=15, shape=plaintext]; a0 [label=< <TABLE border="0" cellspacing="0" cellpadding="3">' + strArray + '</TABLE> >] }', format='png')
+      return src
   
   def drawNumpy2DArray(self, array, showIndex=False):
     maxLen = 0
@@ -255,4 +260,28 @@ class NumpyArrayDrawer:
 
     src = Source('graph "Array" { node [fontsize=15, shape=plaintext]; a0 [label=< <TABLE border="0" cellspacing="0" cellpadding="3">' + strArray + '</TABLE> >] }')
     src.render('lista.gv', view=True)
-    display(SVG(src.pipe(format='svg')))
+    if not self.animation:
+      display(SVG(src.pipe(format='svg')))
+    else:
+      return src
+
+class NumyArrayAnimation:
+  def __init__(self):
+    self.drawer = NumpyArrayDrawer(animation=True)
+    self.counter = 0
+  
+  def post_array(self, array, showIndex=False, layout='row'):
+    src = self.drawer.drawNumpy1DArray(array, showIndex=showIndex, layout=layout)
+    src.render('file'+str(self.counter)+'.png')
+    self.counter = self.counter + 1
+  
+  def view_animation(self, size,delay):
+    for k in range(self.counter):
+		  call([ 'mogrify', '-gravity', 'center', '-background', 'white', '-extent', str(size), 'file'+ str(k) + '.png'])
+	  
+    cmd = [ 'convert' ]
+	  for k in self.counter:
+		  cmd.extend( ( '-delay', str( delay ), 'file'+ str(k) + '.png' ) )
+	  cmd.append( 'animation.gif' )
+	  call( cmd )
+  
