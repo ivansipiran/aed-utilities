@@ -265,23 +265,23 @@ class NumpyArrayDrawer:
     else:
       return src
 
-class NumyArrayAnimation:
-  def __init__(self):
-    self.drawer = NumpyArrayDrawer(animation=True)
-    self.counter = 0
+#class NumyArrayAnimation:
+#  def __init__(self):
+#    self.drawer = NumpyArrayDrawer(animation=True)
+#    self.counter = 0
   
-  def post_array(self, array, showIndex=False, layout='row'):
-    src = self.drawer.drawNumpy1DArray(array, showIndex=showIndex, layout=layout)
-    src.render('file'+str(self.counter)+'.png')
-    self.counter = self.counter + 1
+#  def post_array(self, array, showIndex=False, layout='row'):
+#    src = self.drawer.drawNumpy1DArray(array, showIndex=showIndex, layout=layout)
+#    src.render('file'+str(self.counter)+'.png')
+#    self.counter = self.counter + 1
   
-  def view_animation(self, size,delay):
-    for k in range(self.counter):
-		  call([ 'mogrify', '-gravity', 'center', '-background', 'white', '-extent', str(size), 'file'+ str(k) + '.png'])
+#  def view_animation(self, size,delay):
+#    for k in range(self.counter):
+#		call([ 'mogrify', '-gravity', 'center', '-background', 'white', '-extent', str(size), 'file'+ str(k) + '.png'])
 	  
-    cmd = [ 'convert' ]
-	  for k in self.counter:
-		  cmd.extend( ( '-delay', str( delay ), 'file'+ str(k) + '.png' ) )
-	  cmd.append( 'animation.gif' )
-	  call( cmd )
+#    cmd = [ 'convert' ]
+#	  for k in self.counter:
+#		  cmd.extend( ( '-delay', str( delay ), 'file'+ str(k) + '.png' ) )
+#	  cmd.append( 'animation.gif' )
+#	  call( cmd )
   
