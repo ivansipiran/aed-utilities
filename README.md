@@ -23,4 +23,4 @@ pip install aed-utilities
 
 # Tutorial
 
-Puedes encontrar un tutorial aquí. [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](http://colab.research.google.com/github/ivansipiran/aed-utilities/blob/main/tutorial.ipynb)
+Puedes encontrar un tutorial aquí. [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](http://colab.research.google.com/github/ivansipiran/aed-utilities/blob/main/tutorial/tutorial.ipynb)
