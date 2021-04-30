@@ -1,26 +1,59 @@
 from graphviz import Source
 from IPython.display import display_svg, SVG,display
 
+class SegmentationFault(Exception):
+    pass
+
 class LinkedListDrawer:
-  def __init__(self, strHeader = "", fieldHeader="", fieldData="", fieldLink="", fieldReverseLink=None):
-    self.strHeader = strHeader
-    self.fieldLink = fieldLink
-    self.fieldHeader = fieldHeader
-    self.fieldData = fieldData
-    self.fieldReverseLink = fieldReverseLink
+  def __init__(self, **kwargs):
+    self.strHeader = kwargs.get('strHeader', '')
+    self.fieldLink = kwargs.get('fieldLink', '')
+    self.fieldHeader = kwargs.get('fieldHeader', '')
+    self.fieldData = kwargs.get('fieldData', '')
+    self.fieldReverseLink = kwargs.get('fieldReverseLink', None)
+    self.pointers = kwargs.get('pointers', {}) # dict of [int] -> [str]
   
   def draw_linked_list(self, nList):
+    listStr = ''
+
     if self.strHeader!="":
-      listStr = 'node[shape=plaintext];'+self.strHeader+'; node[shape=square]; ""; node[shape=circle]; '+ self.strHeader + '-> '
-    else:
-      listStr = 'node[shape=square]; ""; node[shape=circle]; '
+      listStr = f'HEAD [shape=plaintext label="{self.strHeader}"];\n'
+    listStr += 'NULL [shape=square label=""];\n'
+
+    for position, label in self.pointers.items():
+      listStr += f'_label_pos{position} [shape=plaintext label="{label}"];\n'
+
+    listStr += 'node[shape=circle];\n'
+    if self.strHeader != "":
+      listStr += 'HEAD -> '
 
     p = getattr(nList, self.fieldHeader)
+    position = 0
+    pointedNodes = []
     while p is not None:
-      listStr += str(getattr(p, self.fieldData))+ ' -> '
+      nodeData = str(getattr(p, self.fieldData))
       p = getattr(p, self.fieldLink)
-    listStr += '"";'
+    
+      if position in self.pointers:
+        listStr += f'_nodo_pos{position} -> '
+        pointedNodes.append(f'_nodo_pos{position} [shape=circle label="{nodeData}"];\n'
+                                    f'_label_pos{position} -> _nodo_pos{position};\n'
+                                    f'{{ rank="same"; _label_pos{position}; _nodo_pos{position} }};')
+      else:
+        listStr += f'{nodeData} -> '
+      position+=1
   
+    listStr += 'NULL;\n'
+
+    listStr += '\n'.join(pointedNodes)
+    if position in self.pointers: # Last position is NULL
+      listStr += f'''
+        _label_pos{position} -> NULL;
+        {{ rank="same"; _label_pos{position}; NULL }} '''
+
+    if len(self.pointers) > 1 and max(self.pointers) > position:
+      raise SegmentationFault(f'Tried to draw a pointer to node {max(self.pointers)}, but list length is {position}.')
+
     src = Source('digraph "Lista" { rankdir=LR; ' + listStr +' }')
     src.render('lista.gv', view=True)
     display(SVG(src.pipe(format='svg')))
