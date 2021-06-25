@@ -298,6 +298,58 @@ class NumpyArrayDrawer:
     else:
       return src
 
+class GraphDrawer:
+    def __init__(self, **kwargs):
+        self.directed = kwargs.get('directed', False)
+        self.multiedges = kwargs.get('multiEdges', False)
+
+    def draw_graph(self, graph, **kwargs):
+        '''
+        graph: dict of [any] -> list of [any]
+               If directed=True, the dictionary key is the source of the edge.
+        Optional
+        edgeLabels: dict of tuple([any], [any]) -> str
+                         or frozenset(([any],[any])) -> str
+                    frozenset is useful when labelling explicitly undirected graphs
+        '''
+        edge_labels = kwargs.get('edgeLabels', {})
+
+        graphStr = ''
+        if not self.multiedges:
+            graphStr += 'concentrate=true;\n'
+        graphStr += 'node[shape=circle];\n';
+
+        if self.directed:
+            EDGE = '->'
+            TYPE = 'digraph'
+        else:
+            EDGE = '--'
+            TYPE = 'graph'
+
+        already_parsed_graph = set()
+        for node in graph:
+            for neighbor in graph[node]:
+                if not self.multiedges:
+                    if (neighbor, node) in already_parsed_graph and not self.directed:
+                        continue
+                    if (node, neighbor) in already_parsed_graph:
+                        continue
+                edge_label = edge_labels.get(frozenset((node, neighbor)), None)
+                if edge_label is None:
+                    edge_label = edge_labels.get((node, neighbor), None)
+                if edge_label is None and not self.directed:
+                    edge_label = edge_labels.get((neighbor, node), None)
+                graphStr += f'{node} {EDGE} {neighbor}'
+                if edge_label:
+                    graphStr += f' [label=" {edge_label}"]'
+                graphStr += ';\n'
+                already_parsed_graph.add((node, neighbor))
+
+        src = Source(TYPE+' "Grafo" { rankdir=LR; ' + graphStr +' }')
+        src.render('grafo.gv', view=True)
+        display(SVG(src.pipe(format='svg')))
+
+
 #class NumyArrayAnimation:
 #  def __init__(self):
 #    self.drawer = NumpyArrayDrawer(animation=True)
