@@ -195,7 +195,7 @@ class BinaryTreeDrawer:
       if "null" in str(item[3]):
         listStr = listStr + ' ' + str(item[3])+ '[pos="' + str(item[1]) + ',' + str(item[2]) + '!" shape=square label="'+str(item[0])+'" width="0.2"] '  
       else:
-        listStr = listStr + '"' + str(item[3])+ '"' + '[pos="' + str(item[1]) + ',' + str(item[2]) + '!" label="'+str(item[0])+'" shape='+str(item[4])+'] '
+        listStr = listStr + '"' + str(item[3])+ '"' + '[pos="' + str(item[1]) + ',' + str(item[2]) + '!" label="'+str(item[0])+'" shape='+str(item[4])+' margin=0] '
   
     return listStr
 
