@@ -102,7 +102,7 @@ class PositionNode:
         self.code = code
 
 class BinaryTreeDrawer:
-  def __init__(self, fieldData, fieldLeft, fieldRight, classNone=None, drawNull = False):
+  def __init__(self, fieldData, fieldLeft, fieldRight, classNone=None, drawNull = False, shapeInternal='circle'):
     self.nameInfo = fieldData
     self.nameLeft = fieldLeft
     self.nameRight = fieldRight
@@ -111,6 +111,7 @@ class BinaryTreeDrawer:
     self.drawNull = drawNull
     self.counterNull = 0
     self.counterNodes = 0
+    self.shapeInternal = shapeInternal
     
   def gen_code(self):
     code = "node" + str(self.counterNodes)
@@ -135,7 +136,7 @@ class BinaryTreeDrawer:
             self.counterNull = self.counterNull + 1
             newNode2 = PositionNode(None, "", None, "square", "null" + str(self.counterNull))
             self.counterNull = self.counterNull + 1
-            return PositionNode(newNode1, getattr(node, self.nameInfo), newNode2, "circle", self.gen_code())
+            return PositionNode(newNode1, getattr(node, self.nameInfo), newNode2, self.shapeInternal, self.gen_code())
     else:
       if node is None:
         if not self.drawNull:
@@ -148,7 +149,7 @@ class BinaryTreeDrawer:
     newLeft = self.copy_tree(getattr(node, self.nameLeft))
     newRight = self.copy_tree(getattr(node, self.nameRight))
 
-    return PositionNode(newLeft, getattr(node, self.nameInfo), newRight, "circle", self.gen_code())
+    return PositionNode(newLeft, getattr(node, self.nameInfo), newRight, self.shapeInternal, self.gen_code())
 
   def update_position(self, node, shiftX, shiftY):
     if node is not None:
@@ -221,7 +222,7 @@ class BinaryTreeDrawer:
     listNodes = self.encode_nodes(B)
     listStr = self.encode_edges(B)
   
-    src = Source('graph "Arbol" { rankdir=TB; ' + listNodes + ' node[shape=circle] ' + listStr +' }')
+    src = Source('graph "Arbol" { rankdir=TB; ' + listNodes + ' node[shape='+ self.shapeInternal +'] ' + listStr +' }')
     src.engine="neato"
     src.render('lista.gv', view=True)
     display(SVG(src.pipe(format='svg')))
