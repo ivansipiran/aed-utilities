@@ -2,7 +2,7 @@ from distutils.core import setup
 setup(
   name = 'aed_utilities',         # How you named your package folder (MyLib)
   packages = ['aed_utilities'],   # Chose the same as "name"
-  version = '0.5.4',      # Start with a small number and increase it with every change you make
+  version = '0.5.5',      # Start with a small number and increase it with every change you make
   license='MIT',        # Chose a license from here: https://help.github.com/articles/licensing-a-repository
   description = 'Herramientas basicas de dibujo de estructuras de datos',   # Give a short description about your library
   author = 'Profesores del Curso',                   # Type in your name

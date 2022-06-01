@@ -1,5 +1,6 @@
 from graphviz import Source
 from IPython.display import display_svg, SVG,display
+import numpy as np
 
 class SegmentationFault(Exception):
     pass
@@ -192,10 +193,14 @@ class BinaryTreeDrawer:
     listStr = ""
 
     for item in L:
+      data = item[0]
+      if data == np.inf:
+        data='+&infin;'
+
       if "null" in str(item[3]):
-        listStr = listStr + ' ' + str(item[3])+ '[pos="' + str(item[1]) + ',' + str(item[2]) + '!" shape=square label="'+str(item[0])+'" width="0.2"] '  
+        listStr = listStr + ' ' + str(item[3])+ '[pos="' + str(item[1]) + ',' + str(item[2]) + '!" shape=square label="'+str(data)+'" width="0.2"] '  
       else:
-        listStr = listStr + '"' + str(item[3])+ '"' + '[pos="' + str(item[1]) + ',' + str(item[2]) + '!" label="'+str(item[0])+'" shape='+str(item[4])+' margin=0] '
+        listStr = listStr + '"' + str(item[3])+ '"' + '[pos="' + str(item[1]) + ',' + str(item[2]) + '!" label="'+str(data)+'" shape='+str(item[4])+' margin=0] '
   
     return listStr
 
