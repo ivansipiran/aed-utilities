@@ -122,7 +122,7 @@ class BinaryTreeDrawer:
   def copy_tree(self, node):
     if self.classNone is not None:
       if isinstance(node, self.classNone):
-        if not hasattr(node, "info"):
+        if not hasattr(node, self.nameInfo):
           if not self.drawNull:
             return None
           else:
