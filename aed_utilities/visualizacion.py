@@ -232,6 +232,33 @@ class BinaryTreeDrawer:
     src.render('lista.gv', view=True)
     display(SVG(src.pipe(format='svg')))
 
+class GraphDrawer:
+  def __init__(self):
+    pass
+
+  def draw_graph(self, graph):
+    listStr = ""
+
+    if graph.dirigido:
+      head = 'digraph'
+      connector = '->'
+    else:
+      head = 'graph'
+      connector = '--'
+
+    for e in graph.E:
+      listStr = listStr + '"' + str(e[0]) + '"' + connector + '"' + str(e[1]) + '"'
+      if len(e) == 3:
+        listStr = listStr + '[label = ' + str(e[2]) + ']'
+      listStr = listStr + ';'
+
+    final_str = head + ' "Grafo" {' + listStr + '}'
+    print(final_str)
+    src = Source(final_str)
+    src.engine="neato"
+    src.render('lista.gv', view=True)
+    display(SVG(src.pipe(format='svg')))
+
 class NumpyArrayDrawer:
   def __init__(self, animation = False):
     self.animation = animation
