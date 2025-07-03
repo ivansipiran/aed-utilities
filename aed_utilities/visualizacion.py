@@ -253,7 +253,7 @@ class GraphDrawer:
       listStr = listStr + ';'
 
     final_str = head + ' "Grafo" {' + listStr + '}'
-    print(final_str)
+    
     src = Source(final_str)
     src.engine="neato"
     src.render('lista.gv', view=True)
