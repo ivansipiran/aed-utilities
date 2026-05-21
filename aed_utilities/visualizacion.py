@@ -331,23 +331,206 @@ class NumpyArrayDrawer:
     else:
       return src
 
-#class NumyArrayAnimation:
-#  def __init__(self):
-#    self.drawer = NumpyArrayDrawer(animation=True)
-#    self.counter = 0
-  
-#  def post_array(self, array, showIndex=False, layout='row'):
-#    src = self.drawer.drawNumpy1DArray(array, showIndex=showIndex, layout=layout)
-#    src.render('file'+str(self.counter)+'.png')
-#    self.counter = self.counter + 1
-  
-#  def view_animation(self, size,delay):
-#    for k in range(self.counter):
-#		call([ 'mogrify', '-gravity', 'center', '-background', 'white', '-extent', str(size), 'file'+ str(k) + '.png'])
-	  
-#    cmd = [ 'convert' ]
-#	  for k in self.counter:
-#		  cmd.extend( ( '-delay', str( delay ), 'file'+ str(k) + '.png' ) )
-#	  cmd.append( 'animation.gif' )
-#	  call( cmd )
-  
+class PositionNode23:
+    def __init__(self, children, labels, nodetype, code):
+        self.children = children     # lista de PositionNode23
+        self.labels = labels         # lista de strings: 1 para Nodo2, 2 para Nodo3, [] para Nodoe
+        self.x = 0.0
+        self.y = 0.0
+        self.nodetype = nodetype     # 'circle', 'Mrecord', 'square'
+        self.code = code
+
+
+class Tree23Drawer:
+    """
+    Visualizador de árboles 2-3, en el mismo estilo de BinaryTreeDrawer.
+
+    Uso típico (con las clases Nodo2/Nodo3/Nodoe/Arbol23):
+        drawer = Tree23Drawer(Nodo2, Nodo3, Nodoe)
+        drawer.draw_tree(mi_arbol)
+
+    Parámetros principales:
+      - classNode2/classNode3/classEmpty: las tres clases del árbol 2-3.
+      - fields2:  tupla (izq, info, der) con los nombres de atributos de Nodo2.
+      - fields3:  tupla (izq, info1, med, info2, der) para Nodo3.
+      - fieldRoot: nombre del atributo raíz en el Arbol23 ('raiz' por defecto).
+      - shape2/shape3: shapes de Graphviz para 2-nodos y 3-nodos.
+      - drawEmpty: si True, dibuja también los Nodoe como cuadraditos.
+    """
+
+    def __init__(self, classNode2, classNode3, classEmpty,
+                 fields2=('izq', 'info', 'der'),
+                 fields3=('izq', 'info1', 'med', 'info2', 'der'),
+                 fieldRoot='raiz',
+                 shape2='circle',
+                 shape3='Mrecord',
+                 drawEmpty=False):
+        self.classNode2 = classNode2
+        self.classNode3 = classNode3
+        self.classEmpty = classEmpty
+        self.fields2 = fields2
+        self.fields3 = fields3
+        self.fieldRoot = fieldRoot
+        self.shape2 = shape2
+        self.shape3 = shape3
+        self.drawEmpty = drawEmpty
+        self.offset = 0.5      # separación horizontal entre subárboles hermanos
+        self.vgap   = 0.8      # separación vertical entre niveles
+        self.counterNodes = 0
+        self.counterEmpty = 0
+
+    # ---------- utilidades ----------
+    def _gen_code(self):
+        code = "node" + str(self.counterNodes)
+        self.counterNodes += 1
+        return code
+
+    def _gen_empty_code(self):
+        code = "empty" + str(self.counterEmpty)
+        self.counterEmpty += 1
+        return code
+
+    def _fmt(self, v):
+        if isinstance(v, float) and v == np.inf:
+            return '+&infin;'
+        return str(v)
+
+    def _half_width(self, n_labels):
+        # Ancho visual aproximado del nodo (Nodo3 es el doble que Nodo2)
+        if n_labels == 0:
+            return self.offset / 4.0  # Nodoe
+        return self.offset / 3.0 * n_labels
+
+    # ---------- conversión del árbol a la estructura de posicionamiento ----------
+    def copy_tree(self, node):
+        if isinstance(node, self.classEmpty):
+            if not self.drawEmpty:
+                return None
+            return PositionNode23([], [], "square", self._gen_empty_code())
+
+        if isinstance(node, self.classNode2):
+            f_left, f_info, f_right = self.fields2
+            izq = self.copy_tree(getattr(node, f_left))
+            der = self.copy_tree(getattr(node, f_right))
+            children = [c for c in [izq, der] if c is not None]
+            labels = [self._fmt(getattr(node, f_info))]
+            return PositionNode23(children, labels, self.shape2, self._gen_code())
+
+        if isinstance(node, self.classNode3):
+            f_left, f_info1, f_med, f_info2, f_right = self.fields3
+            izq = self.copy_tree(getattr(node, f_left))
+            med = self.copy_tree(getattr(node, f_med))
+            der = self.copy_tree(getattr(node, f_right))
+            children = [c for c in [izq, med, der] if c is not None]
+            labels = [self._fmt(getattr(node, f_info1)),
+                      self._fmt(getattr(node, f_info2))]
+            return PositionNode23(children, labels, self.shape3, self._gen_code())
+
+        return None
+
+    # ---------- layout ----------
+    def update_position(self, node, shiftX, shiftY):
+        if node is None:
+            return
+        for child in node.children:
+            self.update_position(child, shiftX, shiftY)
+        node.x += shiftX
+        node.y += shiftY
+
+    def compute_position(self, node):
+        """Devuelve (centro, min_x, max_x) del subárbol. El nodo raíz queda en x=0."""
+        half_w = self._half_width(len(node.labels))
+
+        if not node.children:
+            return 0.0, -half_w, half_w
+
+        # Calcula extensiones de cada subárbol hijo
+        children_info = []
+        for child in node.children:
+            _, mn, mx = self.compute_position(child)
+            children_info.append((mn, mx, child))
+
+        # Coloca los hijos uno al lado del otro, partiendo desde cursor=0
+        positions = []
+        cursor = 0.0
+        for mn, mx, _ in children_info:
+            center_pos = cursor - mn          # el borde izquierdo del hijo queda en cursor
+            positions.append(center_pos)
+            cursor += (mx - mn) + self.offset
+
+        total_used = cursor - self.offset
+
+        # Centra horizontalmente para que el bounding box quede simétrico al padre
+        shift = -(total_used / 2.0)
+        for i, (mn, mx, ch) in enumerate(children_info):
+            final_pos = positions[i] + shift
+            self.update_position(ch, final_pos, -self.vgap)
+            positions[i] = final_pos
+
+        new_min = positions[0]  + children_info[0][0]
+        new_max = positions[-1] + children_info[-1][1]
+
+        # Asegura que el ancho del propio nodo también esté incluido
+        new_min = min(new_min, -half_w)
+        new_max = max(new_max,  half_w)
+
+        return 0.0, new_min, new_max
+
+    # ---------- generación del DOT ----------
+    def _collect(self, node, L):
+        if node is None:
+            return
+        L.append(node)
+        for ch in node.children:
+            self._collect(ch, L)
+
+    def encode_nodes(self, root):
+        L = []
+        self._collect(root, L)
+        out = ""
+        for n in L:
+            if n.code.startswith("empty"):
+                out += (f' {n.code}[pos="{n.x},{n.y}!" shape=square '
+                        f'label="" width="0.2" height="0.2"] ')
+            else:
+                if n.nodetype in ("record", "Mrecord"):
+                    label = " | ".join(n.labels)
+                else:
+                    label = n.labels[0] if n.labels else ""
+                out += (f' "{n.code}"[pos="{n.x},{n.y}!" '
+                        f'label="{label}" shape={n.nodetype} margin=0.05] ')
+        return out
+
+    def encode_edges(self, node):
+        if node is None:
+            return ""
+        out = ""
+        for child in node.children:
+            out += f' "{node.code}"--"{child.code}" '
+            out += self.encode_edges(child)
+        return out
+
+    # ---------- API pública ----------
+    def draw_tree(self, tree):
+        self.counterNodes = 0
+        self.counterEmpty = 0
+
+        root = getattr(tree, self.fieldRoot)
+        B = self.copy_tree(root)
+
+        if B is None:
+            # Árbol vacío
+            src = Source('graph "Arbol23" { vacio [shape=square label="" '
+                         'width="0.2" height="0.2"] }')
+            src.render('arbol23.gv', view=True)
+            display(SVG(src.pipe(format='svg')))
+            return
+
+        self.compute_position(B)
+        listNodes = self.encode_nodes(B)
+        listEdges = self.encode_edges(B)
+
+        src = Source('graph "Arbol23" { ' + listNodes + ' ' + listEdges + ' }')
+        src.engine = "neato"
+        src.render('arbol23.gv', view=True)
+        display(SVG(src.pipe(format='svg')))
