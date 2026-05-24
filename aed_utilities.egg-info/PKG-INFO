@@ -1,0 +1,35 @@
+Metadata-Version: 2.4
+Name: aed_utilities
+Version: 0.9.0
+Summary: Herramientas basicas de dibujo de estructuras de datos
+Home-page: https://github.com/ivansipiran/aed_utilities
+Download-URL: https://github.com/ivansipiran/aed-utilities/archive/refs/tags/v0.9.0.tar.gz
+Author: Profesores del Curso
+Author-email: isipiran@dcc.uchile.cl
+License: MIT
+Keywords: estructuras de datos,algoritmos
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development :: Build Tools
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+License-File: LICENSE.txt
+Requires-Dist: validators
+Requires-Dist: beautifulsoup4
+Requires-Dist: graphviz
+Requires-Dist: ipykernel
+Requires-Dist: matplotlib
+Requires-Dist: ipywidgets
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: download-url
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: license
+Dynamic: license-file
+Dynamic: requires-dist
+Dynamic: summary

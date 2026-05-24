@@ -1,0 +1,6 @@
+validators
+beautifulsoup4
+graphviz
+ipykernel
+matplotlib
+ipywidgets
